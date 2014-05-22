@@ -5,6 +5,8 @@ import java.io.Console;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import Bank.AccountPrx;
+import Bank.AccountPrxHelper;
 import Bank.BankManagerPrx;
 import Bank.BankManagerPrxHelper;
 import Bank.PersonalData;
@@ -38,9 +40,11 @@ public class Client {
 	}
 	
 	private void input() throws IOException {
-		System.out.println("[n] - nowe konto\n[e] - istniejace konto");
-		if (nextLine().equals("e")) {
-			existingAccountInput();
+		System.out.println("[n] - nowe konto\n[p] - istniejace konto premium\n[s] - istniejace konto silver");
+		if (nextLine().equals("p")) {
+			existingAccountPremiumInput();
+		} else if (thisLine().equals("s")) {
+			existingAccountSilverInput();
 		} else if (thisLine().equals("n")){
 			newAccountInput();
 		} else {
@@ -49,9 +53,42 @@ public class Client {
 		}
 	}
 	
-	private void existingAccountInput() {
+	private void existingAccountPremiumInput() throws IOException {
 		System.out.println("Podaj numer konta");
+		String line = nextLine();
 		
+		try {
+			Ice.ObjectPrx accountBase = ic.stringToProxy("premium/" + line + ":tcp -p 10000:ssl -p 12001:udp -p 10000");
+			PremiumAccountPrx account = PremiumAccountPrxHelper.checkedCast(accountBase);
+			premiumInput(account);
+		} catch (Exception e) {
+			System.out.println("Wystapil blad.");
+			existingAccountPremiumInput();
+		}
+		
+		
+	}
+	
+	private void premiumInput(PremiumAccountPrx account) {
+		System.out.println("[t] - transfer\n[l] - pozyczka");
+	}
+	
+	private void existingAccountSilverInput() throws IOException {
+		System.out.println("Podaj numer konta");
+		String line = nextLine();
+		
+		try {
+			Ice.ObjectPrx accountBase = ic.stringToProxy("silver/" + line + ":tcp -p 10000:ssl -p 12001:udp -p 10000");
+			AccountPrx account = AccountPrxHelper.checkedCast(accountBase);
+			silverInput(account);
+		} catch (Exception e) {
+			System.out.println("Wystapil blad.");
+			existingAccountPremiumInput();
+		}
+	}
+	
+	private void silverInput(AccountPrx account) {
+		System.out.println("[t] - transfer");
 	}
 	
 	private void newAccountInput() {
